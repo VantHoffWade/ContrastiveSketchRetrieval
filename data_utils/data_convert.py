@@ -13,68 +13,18 @@ from multiprocessing import Pool
 from functools import partial
 import random
 import einops
-import svgwrite
 import matplotlib.pyplot as plt
 
 from data_utils import sketch_utils as du
 from data_utils import sketch_file_read as fr
 from data_utils import preprocess as pp
 import global_defs
-
+from vis import vis_s5_data
+from logger import setup_logger
 
 def svg_to_txt(svg_path, txt_path, pen_down=global_defs.pen_down, pen_up=global_defs.pen_up, delimiter=','):
     svg_data = fr.svg_read(svg_path, pen_down, pen_up)
-    # np.savetxt(txt_path, svg_data, fmt="%.5f", delimiter=delimiter)
     np.savetxt(txt_path, svg_data, delimiter=delimiter)
-
-    # paths, attributes, svg_attributes = svg2paths2(svg_path)
-    # strokes = []
-    #
-    # for path, attr in zip(paths, attributes):
-    #     if len(path) == 0:
-    #         continue
-    #
-    #     # 分割子路径（处理M/m移动命令）
-    #     subpaths = []
-    #     current_subpath = []
-    #
-    #     for segment in path:
-    #         if segment.start != (current_subpath[-1].end if current_subpath else None):
-    #             if current_subpath:
-    #                 subpaths.append(current_subpath)
-    #             current_subpath = []
-    #         current_subpath.append(segment)
-    #
-    #     if current_subpath:
-    #         subpaths.append(current_subpath)
-    #
-    #     # 处理每个子路径
-    #     for subpath in subpaths:
-    #         points = []
-    #         # 添加第一个线段的起点
-    #         points.append((subpath[0].start.real, subpath[0].start.imag))
-    #
-    #         # 添加所有线段的终点
-    #         for segment in subpath:
-    #             points.append((segment.end.real, segment.end.imag))
-    #
-    #         strokes.append(points)
-    #
-    # # for c_stk in strokes:
-    # #     c_stk = np.array(c_stk)
-    # #     plt.plot(c_stk[:, 0], -c_stk[:, 1])
-    # #
-    # # plt.axis('equal')
-    # # plt.show()
-    #
-    # with open(txt_path, 'w') as f:
-    #     for stroke_idx, stroke in enumerate(strokes):
-    #         for i, (x, y) in enumerate(stroke):
-    #             # 笔划状态判断（当前笔划的最后一个点标记s=0）
-    #             s = 0 if (i == len(stroke) - 1) and (stroke_idx != len(strokes) - 1) else 1
-    #
-    #             # 写入文件，保留3位小数
-    #             f.write(f"{round(x, 3):.3f},{round(y, 3):.3f},{s}\n")
 
 
 def svg_to_txt_batched(source_dir, target_dir):
@@ -262,6 +212,31 @@ def sketch_file_to_s5(root, max_length, coor_mode='ABS', is_shuffle_stroke=False
 
     return data_cube, mask
 
+def sketch_file_to_s5_batched(source_dir, target_dir, original_type="txt", max_length=500, coor_mode='REL'):
+    logger = setup_logger()
+    os.makedirs(target_dir, exist_ok=True)
+    # 清空target_dir
+    print('clear dir: ', target_dir)
+    shutil.rmtree(target_dir)
+
+    # 在target_dir中创建与source_dir相同的目录层级
+    for root, dirs, files in os.walk(source_dir):
+        # 计算目标文件夹中的对应路径
+        relative_path = os.path.relpath(root, source_dir)
+        target_path = os.path.join(target_dir, relative_path)
+
+        # 创建目标文件夹中的对应目录
+        os.makedirs(target_path, exist_ok=True)
+
+    files_all = du.get_allfiles(source_dir, original_type)
+
+    for c_file in tqdm(files_all, total=len(files_all)):
+        try:
+            s5_data, mask = sketch_file_to_s5(c_file, max_length=max_length, coor_mode=coor_mode)
+            np.savetxt(c_file.replace(source_dir, target_dir).replace(original_type, 'txt'), s5_data.numpy(), delimiter=",")
+        except Exception as e:
+            logger.error(f"Error processing file: {c_file}, Error: {str(e)}")
+            print(f'trans failure: {c_file}')
 
 def quickdraw_to_mgt(root_npz, root_target, delimiter=',', select=(1000, 100, 100), is_random_select=False):
     """
@@ -604,6 +579,23 @@ def npz_to_stk_file(npz_file, stk_root, n_stk=global_defs.n_stk, n_stk_pnt=globa
     #         print(f'error occurred, skip instance: {idx}')
 
 
+
 if __name__ == '__main__':
-    svg_to_txt(r"E:\Dataset\Folders\Sketchy_svg\airplane\n02691156_58-1.svg", "./test.txt", )
+
+    source_dir = r"E:\Dataset\Sketchy\sketches_svg"
+    target_dir = r"E:\Dataset\Sketchy\sketches_s5"
+    sketch_file_to_s5_batched(source_dir=source_dir, target_dir=target_dir, original_type="svg")
+    """
+    s5_data, mask = sketch_file_to_s5(r"E:\Dataset\Folders\Sketchy_txt\airplane\n02691156_58-1.txt", max_length=500, coor_mode="REL")
+    print(s5_data)
+    
+    s5_data = np.loadtxt(r"E:\Dataset\Folders\Sketchy_s5\airplane\n02691156_58-1.txt")
+    s5_data = torch.from_numpy(s5_data)
+    vis_s5_data(s5_data, coor_mode="REL")
+    """
+
+
+
+
+
 

@@ -129,12 +129,39 @@ def vis_sketch_data(sketch_data, pen_up=global_defs.pen_up, pen_down=global_defs
     plt.show()
 
 
-def vis_s5_data(sketch_data, pen_up=global_defs.pen_up, pen_down=global_defs.pen_down):
+def vis_s5_data(sketch_data, coor_mode="ABS", pen_up=global_defs.pen_up, pen_down=global_defs.pen_down):
     # 最后一行最后一个数改为17，防止出现空数组
     sketch_data[-1, 2] = pen_down
 
-    # split all strokes
-    strokes = np.split(sketch_data, np.where(sketch_data[:, 2] == pen_up)[0] + 1)
+    # 获取当前tensor使用的设备和数据类型
+    device = sketch_data.device
+    dtype = sketch_data.dtype
+
+    # 断定坐标模式在绝对模式和相对模式中
+    if coor_mode not in ["ABS", "REL"]:
+        raise ValueError("coor_mode must be 'ABS' or 'REL'")
+
+    # 如果是相对模式则要对笔画进行一定处理
+    if coor_mode == "REL":
+        x, y = 0, 0
+        strokes = []
+        current_stroke = []
+        sketch_data_detached = sketch_data.detach().cpu().numpy()
+        for i, (dx, dy, p1, p2, p3) in enumerate(sketch_data_detached):
+            x += dx
+            y += dy
+            current_stroke.append([x, y])
+
+            if p2 == 1:  # pen-up：一个 stroke 结束
+                strokes.append(torch.tensor(current_stroke, dtype=dtype, device=device))
+                current_stroke = []
+            elif p3 == 1:  # end-of-sequence：整幅图结束
+                if current_stroke:
+                    strokes.append(torch.tensor(current_stroke, dtype=dtype, device=device))
+                break
+    else:
+        # split all strokes
+        strokes = np.split(sketch_data, np.where(sketch_data[:, 2] == pen_up)[0] + 1)
 
     for s in strokes:
         plt.plot(s[:, 0], -s[:, 1])
@@ -453,7 +480,7 @@ def vis_seg_imgs(npz_root=r'D:\document\DeepLearning\DataSet\sketch_seg\SketchSe
             # we get the start position by ourselves in func canvas_size().
 
             # ** In fold ./augm, please comment the under line.
-            # because in augm datasets, the first line is not Absolute position.
+            # because in augm dataset, the first line is not Absolute position.
             sample_sketch[0][0:3] = np.array([0, 0, 0], dtype=sample_sketch.dtype)
 
             # in cv2, data type INT is allowed.
@@ -524,49 +551,6 @@ def test_vis_sketch_orig(root, pen_up=global_defs.pen_up, pen_down=global_defs.p
     plt.show()
 
 
-def test():
-    from encoders.utils import index_points
-
-    def get_coor(skh_root):
-        # -> [n, 4] col: 0 -> x, 1 -> y, 2 -> pen state (17: drawing, 16: stroke end), 3 -> None
-        sketch_data = np.loadtxt(skh_root, delimiter=',')
-
-        # 2D coordinates
-        coordinates = sketch_data[:, :2]
-
-        # sketch mass move to (0, 0), x y scale to [-1, 1]
-        coordinates = coordinates - np.expand_dims(np.mean(coordinates, axis=0), 0)  # 实测是否加expand_dims效果一样
-        dist = np.max(np.sqrt(np.sum(coordinates ** 2, axis=1)), 0)
-        coordinates = coordinates / dist
-
-        return coordinates
-
-    sketch1 = r'D:\document\DeepLearning\DataSet\unified_sketch_from_quickdraw\apple_stk16_stkpnt32\16.txt'
-    sketch2 = r'D:\document\DeepLearning\DataSet\unified_sketch_from_quickdraw\apple_stk16_stkpnt32\16.txt'
-
-    sketch1 = torch.from_numpy(get_coor(sketch1))  # [n, 2]
-    sketch2 = torch.from_numpy(get_coor(sketch2))  # [n, 2]
-
-    sketchs = torch.cat([sketch1.unsqueeze(0), sketch2.unsqueeze(0)], dim=0)  # [bs, n, 2]
-    sketchs = sketchs.permute(0, 2, 1).contiguous()  # [bs, 2, n]
-    sketchs = sketchs.view(2, 2, global_defs.n_stk, global_defs.n_stk_pnt)
-    sketchs = sketchs.permute(0, 2, 3, 1).contiguous()  # [bs, n_stk, n_stk_pnt, 2]
-    sketchs = sketchs.view(2, global_defs.n_stk, global_defs.n_stk_pnt * 2)  # [bs, n_stk, n_stk_pnt * 2]
-
-    idx = torch.randint(0, global_defs.n_stk, [2, global_defs.n_stk // 2])
-    sketchs = index_points(sketchs, idx)  # [bs, n_stk // 2, n_stk_pnt * 2]
-    sketchs = sketchs.view(2, global_defs.n_stk // 2, global_defs.n_stk_pnt, 2)
-    sketchs = sketchs[0, :, :, :]
-
-    for i in range(global_defs.n_stk // 2):
-        c_stk = sketchs[i, :, :]
-        plt.plot(c_stk[:, 0], -c_stk[:, 1])
-        # plt.scatter(s[:, 0], -s[:, 1])
-
-    plt.axis('off')
-    plt.show()
-
-
 def vis_quickdraw(npz_file):
     sketch_all = fr.npz_read(npz_file)[0]
     for c_sketch in sketch_all:
@@ -604,8 +588,9 @@ def vis_tensor_map(cuda_tensor, title=None, save_root=None, is_show=True):
 
 
 if __name__ == '__main__':
-    sketch_data = np.loadtxt("./test.txt",delimiter=',')
+    sketch_data = np.loadtxt(r"E:\Dataset\Sketchy\sketches_s5\alarm_clock\n02694662_92-2.txt", delimiter=',')
+    sketch_data = torch.from_numpy(sketch_data)
     print(sketch_data)
-    vis_sketch_data(sketch_data)
+    vis_s5_data(sketch_data, coor_mode="REL")
 
 

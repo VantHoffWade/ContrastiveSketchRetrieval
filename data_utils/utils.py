@@ -297,6 +297,7 @@ def make_img_square(img_np: np.ndarray):
             return new_img
 
 
+
 # 每个label，对应一个数字
 def create_dict_texts(texts):
     texts = list(texts)
