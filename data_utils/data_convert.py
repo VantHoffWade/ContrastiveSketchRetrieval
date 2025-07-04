@@ -584,7 +584,7 @@ if __name__ == '__main__':
 
     source_dir = r"E:\Dataset\Sketchy\sketches_svg"
     target_dir = r"E:\Dataset\Sketchy\sketches_s5"
-    sketch_file_to_s5_batched(source_dir=source_dir, target_dir=target_dir, original_type="svg")
+    sketch_file_to_s5_batched(source_dir=source_dir, target_dir=target_dir, original_type="svg", max_length=1024, coor_mode="REL")
     """
     s5_data, mask = sketch_file_to_s5(r"E:\Dataset\Folders\Sketchy_txt\airplane\n02691156_58-1.txt", max_length=500, coor_mode="REL")
     print(s5_data)

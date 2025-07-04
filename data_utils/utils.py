@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import numpy as np
 from PIL import Image
@@ -303,3 +304,42 @@ def create_dict_texts(texts):
     texts = list(texts)
     dicts = {l: i for i, l in enumerate(texts)}
     return dicts
+
+# 用来修改Sketchy(svg)中的内容
+def refactor_sketchy_svg(sketchy_svg_path):
+    # "--"合法存在的形式
+    def line_legal(detected_line):
+        condition1 = detected_line.count("<!--") + detected_line.count("-->") == detected_line.count("--")
+        condition2 = detected_line.count("&amp;") + detected_line.count("&lt;") == detected_line.count("&")
+        return condition1 and condition2
+
+    try:
+        with open(sketchy_svg_path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        if not lines[-1].strip().endswith('</svg>'):
+            lines.append('</svg>\n')
+        # 查看是否有特殊字符存在，如果有，则删除
+        for line in lines:
+            if not line_legal(line):
+                print(f"Invalid line found in {sketchy_svg_path}: {line}")
+                lines.remove(line)
+
+        with open(sketchy_svg_path, 'w', encoding='utf-8') as f:
+            f.writelines(lines)
+    except Exception as e:
+        print(f"Error processing {sketchy_svg_path}: {e}")
+
+def refactor_sketchy_svg_batched(sketchy_svg_log):
+    try:
+        pattern = r"E:\\Dataset\\Sketchy\\sketches_svg\\(?:[^\\\n]+\\)*[^\\\n]+\.svg"
+        with open(sketchy_svg_log, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            for line in lines:
+                matches = re.findall(pattern, line)
+                for match in matches:
+                    refactor_sketchy_svg(match)
+    except Exception as e:
+        print(f"Error processing {sketchy_svg_log}: {e}")
+
+if __name__ == '__main__':
+    refactor_sketchy_svg_batched(r'E:\Code\ContrastiveSketchRetrieval\data_utils\logs\sketch_conversion_errors.log')

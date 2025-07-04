@@ -47,6 +47,6 @@ class SketchRNNEmbedding(Module):
 
 if __name__ == "__main__":
     sketch_rnn_encoder = SketchRNNEmbedding()
-    sketch_data_test = np.loadtxt(r"E:\Dataset\Folders\Sketchy_txt\airplane\n02691156_58-2.txt", delimiter=',')
+    sketch_data_test = np.loadtxt(r"E:\Dataset\Sketchy\sketches_s5\airplane\n02691156_58-2.txt", delimiter=',')
     print(sketch_data_test.shape)
     print(sketch_rnn_encoder(torch.randn((32, 312, 5))).size())

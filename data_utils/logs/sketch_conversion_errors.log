@@ -521,3 +521,15 @@
 2025-07-04 02:00:30,844 - ERROR - Error processing file: E:\Dataset\Sketchy\sketches_svg\wine_bottle\n04591713_6069-2.svg, Error: no element found: line 36, column 0
 2025-07-04 02:00:31,272 - ERROR - Error processing file: E:\Dataset\Sketchy\sketches_svg\wine_bottle\n04591713_7080-2.svg, Error: no element found: line 29, column 0
 2025-07-04 02:00:31,273 - ERROR - Error processing file: E:\Dataset\Sketchy\sketches_svg\wine_bottle\n04591713_7080-3.svg, Error: no element found: line 48, column 0
+2025-07-04 18:56:46,667 - ERROR - Error processing file: E:\Dataset\Sketchy\sketches_svg\car_(sedan)\n04166281_13380-1.svg, Error: no element found: line 56, column 0
+2025-07-04 18:56:47,067 - ERROR - Error processing file: E:\Dataset\Sketchy\sketches_svg\car_(sedan)\n04166281_1917-1.svg, Error: no element found: line 66, column 0
+2025-07-04 18:56:47,069 - ERROR - Error processing file: E:\Dataset\Sketchy\sketches_svg\car_(sedan)\n04166281_1917-2.svg, Error: no element found: line 42, column 0
+2025-07-04 18:56:48,148 - ERROR - Error processing file: E:\Dataset\Sketchy\sketches_svg\car_(sedan)\n04166281_2502-3.svg, Error: no element found: line 44, column 0
+2025-07-04 18:56:49,946 - ERROR - Error processing file: E:\Dataset\Sketchy\sketches_svg\car_(sedan)\n04166281_4975-2.svg, Error: no element found: line 44, column 0
+2025-07-04 18:56:50,655 - ERROR - Error processing file: E:\Dataset\Sketchy\sketches_svg\car_(sedan)\n04166281_5438-2.svg, Error: no element found: line 50, column 0
+2025-07-04 18:56:50,783 - ERROR - Error processing file: E:\Dataset\Sketchy\sketches_svg\car_(sedan)\n04166281_5506-1.svg, Error: no element found: line 49, column 0
+2025-07-04 18:56:51,755 - ERROR - Error processing file: E:\Dataset\Sketchy\sketches_svg\car_(sedan)\n04166281_6358-1.svg, Error: no element found: line 37, column 0
+2025-07-04 19:14:44,097 - ERROR - Error processing file: E:\Dataset\Sketchy\sketches_svg\car_(sedan)\n04166281_2502-3.svg, Error: no element found: line 44, column 0
+2025-07-04 19:14:46,020 - ERROR - Error processing file: E:\Dataset\Sketchy\sketches_svg\car_(sedan)\n04166281_4975-2.svg, Error: no element found: line 44, column 0
+2025-07-04 19:14:46,951 - ERROR - Error processing file: E:\Dataset\Sketchy\sketches_svg\car_(sedan)\n04166281_5506-1.svg, Error: no element found: line 49, column 0
+2025-07-04 19:14:47,946 - ERROR - Error processing file: E:\Dataset\Sketchy\sketches_svg\car_(sedan)\n04166281_6358-1.svg, Error: no element found: line 37, column 0
