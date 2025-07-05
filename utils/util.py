@@ -46,6 +46,18 @@ def make_dir(root_save_path):
         shutil.rmtree(root_save_path)  # delete output folder
     os.makedirs(root_save_path)  # make new output folder
 
+# 显示某个模型的梯度信息
+def show_grad(model):
+    # 遍历模型参数
+    for name, param in model.named_parameters():
+        # 如果参数的梯度不存在，则打印提示信息
+        if param.grad is None:
+            print(f"{name:<30} ⟶  梯度还没生成")
+        # 否则，打印参数名称、形状和梯度均值
+        else:
+            print(f"{name:<30} | 形状: {tuple(param.grad.shape)} | "
+                  f"梯度均值: {param.grad.mean():.4e}")
+
 
 class Logger(object):
     def __init__(self, filename="Default.log"):

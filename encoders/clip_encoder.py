@@ -14,6 +14,8 @@ import torch
 from torch import nn
 
 import losses
+from utils.util import show_grad
+import clip
 
 
 class LayerNorm(nn.LayerNorm):
@@ -367,5 +369,7 @@ def SLIP_VITL16(**kwargs):
 if __name__ == '__main__':
 	model = CLIP_VITL16()
 	image_input = torch.rand(16, 3, 224, 224)
-	text_input = torch.rand(16, 77)
-	print(model.encode_image(image_input).shape)
+	text_input = clip.tokenize(["Hello World"] * 16)
+	print(text_input)
+	print(model(image_input, text_input))
+	show_grad(model)
