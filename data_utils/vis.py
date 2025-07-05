@@ -586,6 +586,23 @@ def vis_tensor_map(cuda_tensor, title=None, save_root=None, is_show=True):
     plt.clf()
     plt.close()
 
+def vis_pil_tensor(cuda_tensor, flip_rgb=False, title=None, save_root=None,
+                   is_show=True):
+    from torchvision.transforms.functional import to_pil_image
+    cpu_tensor = cuda_tensor.cpu()
+
+    if flip_rgb:
+        cpu_tensor = cpu_tensor[[2, 1, 0], :, :]  # BGR → RGB
+
+    pil_tensor = to_pil_image(cpu_tensor)
+    plt.imshow(pil_tensor)
+    plt.title(title)
+    plt.axis('off')
+
+    if save_root is not None:
+        plt.savefig(save_root)
+    if is_show:
+        plt.show()
 
 if __name__ == '__main__':
     sketch_data = np.loadtxt(r"E:\Dataset\Sketchy\sketches_s5\alarm_clock\n02694662_92-2.txt", delimiter=',')
