@@ -6,6 +6,7 @@ from PIL import Image
 from torchvision.transforms import transforms
 import cv2
 from torchvision.transforms import InterpolationMode
+from pathlib import Path
 
 from data_utils.sketch_file_read import s5_read
 
@@ -349,10 +350,34 @@ def change_index_png_to_txt(file_path):
         for line in lines:
             f.write(line.replace('.png', '.txt'))
 
+def remove_non_existing_filename(file_path, refer_root):
+    refer_root = Path(refer_root)
+    filenames = []
+    class_names = [f.name for f in refer_root.iterdir() if f.is_dir()]
+    for class_name in class_names:
+        folder_name = refer_root / class_name
+        for filename in folder_name.iterdir():
+            if filename.name.endswith('.txt'):
+                filenames.append(filename.name)
+
+    if len(filenames) == len(set(filenames)):
+        print("该文件夹下没有同名文件")
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    for line in lines:
+        filename = line.split("/")[-1].split(" ")[0]
+        if filename not in filenames:
+            print(filename)
+        else:
+            lines.append(line)
+
 
 if __name__ == '__main__':
     """
     refactor_sketchy_svg_batched(r'E:\Code\ContrastiveSketchRetrieval\data_utils\logs\sketch_conversion_errors.log')
+    """
     """
     change_index_png_to_txt(
         r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\zeroshot0\sketch_tx_000000000000_ready_filelist_train.txt")
@@ -362,3 +387,8 @@ if __name__ == '__main__':
         r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\zeroshot1\sketch_tx_000000000000_ready_filelist_train.txt")
     change_index_png_to_txt(
         r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\zeroshot1\sketch_tx_000000000000_ready_filelist_zero.txt")
+    """
+    remove_non_existing_filename(
+        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\zeroshot1"
+        r"\sketch_tx_000000000000_ready_filelist_zero.txt",
+        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\256x256\sketch\tx_000000000000_ready")
