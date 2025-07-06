@@ -5,6 +5,9 @@ import numpy as np
 from PIL import Image
 from torchvision.transforms import transforms
 import cv2
+from torchvision.transforms import InterpolationMode
+
+from data_utils.sketch_file_read import s5_read
 
 
 def get_all_train_file(args, skim):
@@ -89,6 +92,9 @@ def get_file_iccv(labels, rootpath, class_name, cname, number, file_ls):
     full_path = os.path.join(rootpath, files)
     return full_path
 
+# 用来读取草图文件
+def get_file_iccv_sketch(labels, rootpath, class_name, cname, number, file_ls):
+    pass
 
 def get_file_list_iccv(args, rootpath, skim, split):
 
@@ -183,29 +189,21 @@ def get_file_list_iccv(args, rootpath, skim, split):
 
 
 
-def preprocess(image_path, img_type="im"):
-    # immean = [0.485, 0.456, 0.406]  # RGB channel mean for imagenet
-    # imstd = [0.229, 0.224, 0.225]
-
-    immean = [0.5, 0.5, 0.5]  # RGB channel mean for imagenet
-    imstd = [0.5, 0.5, 0.5]
-
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(immean, imstd)
-    ])
-
+def preprocess(image_path, img_type="im", max_len=1024):
     if img_type == 'im':
-        return transform(Image.open(image_path).resize((224, 224)).convert('RGB'))
-    else:
-        # 对sketch 进行crop，等比例扩大到224
-        img = cv2.imread(image_path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = remove_white_space_image(img, 10)
-        img = resize_image_by_ratio(img, 224)
-        img = make_img_square(img)
+        transform = transforms.Compose([
+            transforms.Resize(224, interpolation=InterpolationMode.BICUBIC),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=(0.48145466, 0.4578275, 0.40821073),
+                std=(0.26862954, 0.26130258, 0.27577711))
+        ])
 
-        return transform(img)
+        return transform(Image.open(image_path).convert("RGB"))
+    else:
+        sketch_data = s5_read(image_path, max_len)
+        return sketch_data
 
 
 def remove_white_space_image(img_np: np.ndarray, padding: int):
@@ -341,5 +339,26 @@ def refactor_sketchy_svg_batched(sketchy_svg_log):
     except Exception as e:
         print(f"Error processing {sketchy_svg_log}: {e}")
 
+def change_index_png_to_txt(file_path):
+    # 读取所有行，替换 .png 为 .txt
+    with open(file_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    # 替换后写回
+    with open(file_path, 'w', encoding='utf-8') as f:
+        for line in lines:
+            f.write(line.replace('.png', '.txt'))
+
+
 if __name__ == '__main__':
+    """
     refactor_sketchy_svg_batched(r'E:\Code\ContrastiveSketchRetrieval\data_utils\logs\sketch_conversion_errors.log')
+    """
+    change_index_png_to_txt(
+        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\zeroshot0\sketch_tx_000000000000_ready_filelist_train.txt")
+    change_index_png_to_txt(
+        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\zeroshot0\sketch_tx_000000000000_ready_filelist_zero.txt")
+    change_index_png_to_txt(
+        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\zeroshot1\sketch_tx_000000000000_ready_filelist_train.txt")
+    change_index_png_to_txt(
+        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\zeroshot1\sketch_tx_000000000000_ready_filelist_zero.txt")

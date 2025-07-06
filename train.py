@@ -8,12 +8,12 @@ from tensorboardX import SummaryWriter
 
 from options import Option
 from data_utils.dataset import load_data
-from model.model import Model
-from utils.util import build_optimizer, save_checkpoint, setup_seed
+from encoders.model import Model
+from utils.util import build_optimizer, save_checkpoint, setup_seed, show_grad
 from utils.loss import triplet_loss, rn_loss
 from utils.valid import valid_cls
 
-from data_utils.vis import vis_pil_tensor
+from data_utils.vis import vis_pil_tensor, vis_s5_data
 
 
 def train():
@@ -40,27 +40,23 @@ def train():
         num_total_steps = args.datasetLen // args.batch
 
         for index, (sk, im, sk_neg, im_neg, sk_label, im_label, _, _) in enumerate(train_data_loader):
-            vis_pil_tensor(sk[0], title="sk")
-            vis_pil_tensor(sk_neg[0], title="sk_neg")
+            """
+            vis_s5_data(sk[0], title="sk", coor_mode="REL")
+            vis_s5_data(sk_neg[0], title="sk_neg", coor_mode="REL")
             vis_pil_tensor(im[0], title="im")
             vis_pil_tensor(im_neg[0], title="im_neg")
+            """
             # prepare data
             sk = torch.cat((sk, sk_neg))
             im = torch.cat((im, im_neg))
             sk, im = sk.cuda(), im.cuda()
 
-            # prepare rn truth
-            target_rn = torch.cat((torch.ones(sk_label.size()), torch.zeros(sk_label.size())), dim=0)
-            target_rn = torch.clamp(target_rn, 0.01, 0.99).unsqueeze(dim=1)
-            target_rn = target_rn.cuda()
-
             # calculate feature
-            cls_fea, rn_scores = model(sk, im)
+            cls_fea = model(sk, im)
 
             # loss
-            losstri = triplet_loss(cls_fea, args) * 2   # The initial value of losstri should be around 1.00.
-            lossrn = rn_loss(rn_scores, target_rn) * 4  # The initial value of lossrn should be around 1.00.
-            loss = losstri + lossrn
+            losstri = triplet_loss(cls_fea, args) * 2
+            loss = losstri
 
             # backward
             loss.backward()
@@ -73,8 +69,7 @@ def train():
                 time_per_step = (time.time() - start_time) / max(1, step)
                 remaining_time = time_per_step * (num_total_steps - step)
                 remaining_time = time.strftime('%H:%M:%S', time.gmtime(remaining_time))
-                print(f'epoch_{epoch} step_{step} eta {remaining_time}: loss:{loss.item():.3f} '
-                      f'tri:{losstri.item():.3f} rn:{lossrn.item():.3f}')
+                print(f'epoch_{epoch} step_{step} eta {remaining_time}: loss:{loss.item():.3f}')
 
         if epoch >= 10:
             print('------------------------valid------------------------')

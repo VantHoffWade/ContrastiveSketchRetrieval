@@ -7,7 +7,8 @@ class Option:
         parser = argparse.ArgumentParser(description="args for model")
 
         # dataset
-        parser.add_argument('--data_path', type=str, default=r"E:/Dataset/sketches/ZSE-SBIR")
+        parser.add_argument('--data_path', type=str,
+                            default=r"E:/Dataset/sketches/ZSE-SBIR/Sketchy_s5")
         parser.add_argument('--dataset', type=str, default='sketchy_extend',
                             choices=['sketchy_extend', 'tu_berlin', 'Quickdraw'])
         parser.add_argument('--test_class', type=str, default='test_class_sketchy25',

@@ -13,7 +13,7 @@ import timm
 import torch
 from torch import nn
 
-import losses
+from encoders import losses
 from utils.util import show_grad
 import clip
 
@@ -370,6 +370,11 @@ if __name__ == '__main__':
 	model = CLIP_VITL16()
 	image_input = torch.rand(16, 3, 224, 224)
 	text_input = clip.tokenize(["Hello World"] * 16)
-	print(text_input)
-	print(model(image_input, text_input))
-	show_grad(model)
+	image_embed = model.encode_image(image_input)
+	text_embed = model.encode_text(text_input)
+	print(f"image_embed: {image_embed.shape}")
+	print(f"text_embed: {text_embed.shape}")
+	loss = torch.nn.TripletMarginLoss()
+
+	model, preprocess = clip.load("ViT-B/32")
+	print(preprocess)

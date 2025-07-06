@@ -11,6 +11,7 @@ from data_utils.sketch_utils import get_allfiles, get_subdirs
 import data_utils.sketch_utils as du
 import encoders.spline as sp
 from data_utils import sketch_file_read as fr
+from data_utils.sketch_file_read import s5_read
 
 
 def vis_sketch_folder(root=r'D:\document\DeepLearning\DataSet\sketch_cad\raw\sketch_txt_all', shuffle=True, show_dot=True, dot_gap=3):
@@ -129,7 +130,8 @@ def vis_sketch_data(sketch_data, pen_up=global_defs.pen_up, pen_down=global_defs
     plt.show()
 
 
-def vis_s5_data(sketch_data, coor_mode="ABS", pen_up=global_defs.pen_up, pen_down=global_defs.pen_down):
+def vis_s5_data(sketch_data, title=None, coor_mode="ABS",
+                pen_up=global_defs.pen_up, pen_down=global_defs.pen_down):
     # 最后一行最后一个数改为17，防止出现空数组
     sketch_data[-1, 2] = pen_down
 
@@ -165,6 +167,9 @@ def vis_s5_data(sketch_data, coor_mode="ABS", pen_up=global_defs.pen_up, pen_dow
 
     for s in strokes:
         plt.plot(s[:, 0], -s[:, 1])
+
+    if title is not None:
+        plt.title(title)
 
     plt.axis('off')
     plt.show()
@@ -605,9 +610,15 @@ def vis_pil_tensor(cuda_tensor, flip_rgb=False, title=None, save_root=None,
         plt.show()
 
 if __name__ == '__main__':
+    """
     sketch_data = np.loadtxt(r"E:\Dataset\Sketchy\sketches_s5\alarm_clock\n02694662_92-2.txt", delimiter=',')
     sketch_data = torch.from_numpy(sketch_data)
     print(sketch_data)
+    vis_s5_data(sketch_data, coor_mode="REL")
+    """
+    sketch_data = s5_read(
+        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\256x256"
+        r"\sketch\tx_000000000000_ready\bee\n02206856_55-1.txt")
     vis_s5_data(sketch_data, coor_mode="REL")
 
 

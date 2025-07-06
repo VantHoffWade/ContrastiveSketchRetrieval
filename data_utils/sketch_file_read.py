@@ -234,6 +234,17 @@ def img_read(img_root, img_size=(224, 224)):
 
     return tensor_image
 
+def s5_read(img_root, max_len=512):
+    with open(img_root, "r", encoding="utf-8") as f:
+        lines = [next(f) for _ in range(max_len)]
+
+    np_data = np.loadtxt(lines, delimiter=",")
+    torch_data = torch.from_numpy(np_data)
+
+    return torch_data
+
+
+
 
 
 
