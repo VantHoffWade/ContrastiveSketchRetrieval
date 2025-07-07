@@ -1,0 +1,4 @@
+# .gitignore中主要规定对git隐藏checkpoints文件夹
+/checkpoints
+# 同时还要隐藏tests文件夹
+/tests
