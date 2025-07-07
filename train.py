@@ -14,6 +14,7 @@ from utils.loss import triplet_loss, rn_loss
 from utils.valid import valid_cls
 
 from data_utils.vis import vis_pil_tensor, vis_s5_data
+from utils.logger import create_logger
 
 
 def train():
@@ -31,7 +32,7 @@ def train():
     accuracy = 0
 
     for i in range(start_epoch, args.epoch):
-        print('------------------------train------------------------')
+        logger.info('------------------------train------------------------')
         epoch = i + 1
         model.train()
         torch.set_grad_enabled(True)
@@ -55,7 +56,7 @@ def train():
             cls_fea = model(sk, im)
 
             # loss
-            losstri = triplet_loss(cls_fea, args) * 2
+            losstri = triplet_loss(cls_fea, args)
             loss = losstri
 
             # backward
@@ -69,18 +70,18 @@ def train():
                 time_per_step = (time.time() - start_time) / max(1, step)
                 remaining_time = time_per_step * (num_total_steps - step)
                 remaining_time = time.strftime('%H:%M:%S', time.gmtime(remaining_time))
-                print(f'epoch_{epoch} step_{step} eta {remaining_time}: loss:{loss.item():.3f}')
+                logger.info(f'epoch_{epoch} step_{step} eta {remaining_time}: loss:{loss.item():.3f}')
 
         if epoch >= 10:
-            print('------------------------valid------------------------')
+            logger.info('------------------------valid------------------------')
             # log
             map_all, map_200, precision_100, precision_200 = valid_cls(args, model, sk_valid_data, im_valid_data)
-            print(f'map_all:{map_all:.4f} map_200:{map_200:.4f} precision_100:{precision_100:.4f} precision_200:{precision_200:.4f}')
+            logger.info(f'map_all:{map_all:.4f} map_200:{map_200:.4f} precision_100:{precision_100:.4f} precision_200:{precision_200:.4f}')
             # save
             if map_all > accuracy:
                 accuracy = map_all
                 precision = precision_100
-                print("Save the BEST {}th model......".format(epoch))
+                logger.info("Save the BEST {}th model......".format(epoch))
                 save_checkpoint(
                     {'model': model.state_dict(), 'epoch': epoch, 'map_all': accuracy, 'precision_100': precision},
                     args.save, f'best_checkpoint')
@@ -88,9 +89,10 @@ def train():
 
 if __name__ == '__main__':
     args = Option().parse()
-    print("train args:", str(args))
+    logger = create_logger(args)
+    logger.info("train args:" + str(args))
     os.environ["CUDA_VISIBLE_DEVICES"] = args.choose_cuda
-    print("current cuda: " + args.choose_cuda)
+    logger.info("current cuda: " + args.choose_cuda)
     setup_seed(args.seed)
 
     train()

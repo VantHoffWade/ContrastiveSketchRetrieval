@@ -42,6 +42,8 @@ class Option:
         # other
         parser.add_argument('--choose_cuda', '-c', type=str, default='0')
         parser.add_argument("--seed", type=int, default=2021, help="random seed.")
+        parser.add_argument('--log_name', type=str, default=None)
+        parser.add_argument('--silent', default=False, action='store_true')
 
         self.parser = parser
 
