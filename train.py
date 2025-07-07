@@ -90,6 +90,7 @@ def train():
 if __name__ == '__main__':
     args = Option().parse()
     logger = create_logger(args)
+    args.logger = logger
     logger.info("train args:" + str(args))
     os.environ["CUDA_VISIBLE_DEVICES"] = args.choose_cuda
     logger.info("current cuda: " + args.choose_cuda)

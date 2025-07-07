@@ -43,8 +43,9 @@ def load_para(args):
             file_content = f.readlines()
             train_class_label = np.array([' '.join(ff.strip().split()[:-1]) for ff in file_content])
 
-    print('training classes: ', train_class_label.shape)
-    print('testing classes: ', test_class_label.shape)
+    logger = args.logger
+    logger.info(f'training classes: {train_class_label.shape}')
+    logger.info(f'testing classes: {test_class_label.shape}')
     return train_class_label, test_class_label
 
 
@@ -85,8 +86,10 @@ class PreLoad:
             get_all_train_file(args, "sketch")
         self.all_train_image, self.all_train_image_label, self.all_train_image_cls_name = \
             get_all_train_file(args, "image")
+        
+        logger = args.logger
 
-        print("used for valid or test sketch / image:")
-        print(self.all_valid_or_test_sketch.shape, self.all_valid_or_test_image.shape)
-        print("used for train sketch / image:")
-        print(self.all_train_sketch.shape, self.all_train_image.shape)
+        logger.info("used for valid or test sketch / image:")
+        logger.info(f"{self.all_valid_or_test_sketch.shape, self.all_valid_or_test_image.shape}")
+        logger.info("used for train sketch / image:")
+        logger.info(f"{self.all_train_sketch.shape, self.all_train_image.shape}")

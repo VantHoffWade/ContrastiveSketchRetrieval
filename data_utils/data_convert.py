@@ -20,7 +20,7 @@ from data_utils import sketch_file_read as fr
 from data_utils import preprocess as pp
 import global_defs
 from vis import vis_s5_data
-from logger import setup_logger
+from convert_logger import setup_logger
 
 def svg_to_txt(svg_path, txt_path, pen_down=global_defs.pen_down, pen_up=global_defs.pen_up, delimiter=','):
     svg_data = fr.svg_read(svg_path, pen_down, pen_up)
