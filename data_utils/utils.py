@@ -366,12 +366,16 @@ def remove_non_existing_filename(file_path, refer_root):
     with open(file_path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
+    newlines = []
     for line in lines:
         filename = line.split("/")[-1].split(" ")[0]
         if filename not in filenames:
-            print(filename)
+            print(f"{filename} is not in the refer_dir {refer_root}")
         else:
-            lines.append(line)
+            newlines.append(line)
+
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.writelines(newlines)
 
 
 if __name__ == '__main__':
@@ -389,6 +393,21 @@ if __name__ == '__main__':
         r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\zeroshot1\sketch_tx_000000000000_ready_filelist_zero.txt")
     """
     remove_non_existing_filename(
+        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\zeroshot0"
+        r"\sketch_tx_000000000000_ready_filelist_zero.txt",
+        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\256x256\sketch\tx_000000000000_ready")
+
+    remove_non_existing_filename(
+        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\zeroshot0"
+        r"\sketch_tx_000000000000_ready_filelist_train.txt",
+        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\256x256\sketch\tx_000000000000_ready")
+
+    remove_non_existing_filename(
         r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\zeroshot1"
         r"\sketch_tx_000000000000_ready_filelist_zero.txt",
+        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\256x256\sketch\tx_000000000000_ready")
+
+    remove_non_existing_filename(
+        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\zeroshot1"
+        r"\sketch_tx_000000000000_ready_filelist_train.txt",
         r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\256x256\sketch\tx_000000000000_ready")
