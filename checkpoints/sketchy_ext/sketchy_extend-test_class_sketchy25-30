@@ -1,7 +1,0 @@
-2025-07-07 09:12:57,917 - current cuda: 0
-2025-07-07 09:13:09,360 - ------------------------train------------------------
-2025-07-07 09:14:31,022 - epoch_1 step_30 eta 00:28:50: loss:0.762
-2025-07-07 09:15:16,089 - train args:Namespace(anchor_number=49, batch=15, choose_cuda='0', cls_number=100, d_ff=1024, d_model=768, data_path='E:/Dataset/sketches/ZSE-SBIR/Sketchy_s5', dataset='sketchy_extend', datasetLen=10000, epoch=30, head=8, learning_rate=1e-05, load=None, log_name=None, num_workers=4, number=1, pretrained=True, retrieval='rn', save='./checkpoints/sketchy_ext', seed=2021, silent=False, test_class='test_class_sketchy25', test_im=20, test_sk=20, testall=False, weight_decay=0.01)
-2025-07-07 09:15:16,090 - current cuda: 0
-2025-07-07 09:15:19,163 - ------------------------train------------------------
-2025-07-07 09:15:41,130 - epoch_1 step_30 eta 00:07:45: loss:0.762
