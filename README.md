@@ -19,7 +19,7 @@ pip install -r requirements.txt
 ### 2️⃣ Download preprocessed datasets
 Three datasets are available for download:
 #### Sketchy
-Download [Sketchy](https://pan.quark.cn/s/a2ab32dce2e0) 
+Download [Sketchy](https://pan.quark.cn/s/a5c094c5d3f6) 
 from Quark Drive.
 
 ## 🔥 Train&Eval
