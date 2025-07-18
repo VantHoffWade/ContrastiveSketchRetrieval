@@ -5,6 +5,13 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import splprep, splev
 import cv2
 import random
+import sys
+import os
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QLabel, QVBoxLayout, QGridLayout, QScrollArea
+)
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import Qt
 
 import global_defs
 from data_utils.sketch_utils import get_allfiles, get_subdirs
@@ -12,7 +19,7 @@ import data_utils.sketch_utils as du
 import encoders.spline as sp
 from data_utils import sketch_file_read as fr
 from data_utils.sketch_file_read import s5_read
-
+from data_utils.utils import load_ret_file
 
 def vis_sketch_folder(root=r'D:\document\DeepLearning\DataSet\sketch_cad\raw\sketch_txt_all', shuffle=True, show_dot=True, dot_gap=3):
     files_all = get_allfiles(root)
@@ -609,6 +616,64 @@ def vis_pil_tensor(cuda_tensor, flip_rgb=False, title=None, save_root=None,
     if is_show:
         plt.show()
 
+def vis_ret(sketch_filename, ret_file, image_dir, sketch_dir, top_k=100, cols=2):
+    # 如果sketch_filename在sketch_dir中不存在
+    if not os.path.exists(os.path.join(sketch_dir, sketch_filename)):
+        raise FileNotFoundError(f'{sketch_filename} not found in {sketch_dir}')
+
+    # 将草图列表、图片列表和距离列表从.ret文件中读取
+    sketches, images, dists = load_ret_file(ret_file)
+    # 获取当前sketch在sketches中的索引
+    sketch_dix = np.where(sketches == sketch_filename)[0].item()
+    # 获取当前sketch相对于images的距离
+    sketch_to_images_dist = dists[sketch_dix, :]
+    # 获取当前sketch最接近的top_k个图片索引
+    top_k_image_indices = np.argsort(sketch_to_images_dist)[:top_k]
+    # 获取最接近的top_k个图片名称的列表
+    top_k_image_filenames = images[top_k_image_indices].tolist()
+    top_k_image_filepaths = [os.path.join(image_dir, filename) for filename in top_k_image_filenames]
+
+    class ImageGallery(QWidget):
+        def __init__(self, image_paths, columns):
+            super().__init__()
+            self.setWindowTitle("Image Gallery with Scroll")
+            self.resize(1920, 1080)
+
+            scroll = QScrollArea(self)
+            scroll.setWidgetResizable(True)
+
+            widget = QWidget()
+            self.grid_layout = QGridLayout()
+            widget.setLayout(self.grid_layout)
+
+            scroll.setWidget(widget)
+
+            layout = QVBoxLayout()
+            layout.addWidget(scroll)
+            self.setLayout(layout)
+
+            self.load_images(image_paths, columns)
+
+        def load_images(self, image_paths, columns):
+            row = 0
+            col = 0
+            for i, img_path in enumerate(image_paths):
+                label = QLabel()
+                label.setPixmap(QPixmap(img_path).scaled(
+                    224, 224, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                label.setAlignment(Qt.AlignLeft | Qt.AlignTop)  # 左上角对齐
+                self.grid_layout.addWidget(label, row, col)
+
+                col += 1
+                if col >= columns:
+                    col = 0
+                    row += 1
+
+    app = QApplication(sys.argv)
+    gallery = ImageGallery(top_k_image_filepaths, cols)
+    gallery.show()
+    sys.exit(app.exec_())
+
 if __name__ == '__main__':
     """
     sketch_data = np.loadtxt(r"E:\Dataset\Sketchy\sketches_s5\alarm_clock\n02694662_92-2.txt", delimiter=',')
@@ -616,9 +681,15 @@ if __name__ == '__main__':
     print(sketch_data)
     vis_s5_data(sketch_data, coor_mode="REL")
     """
+    """
     sketch_data = s5_read(
         r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\256x256"
         r"\sketch\tx_000000000000_ready\bee\n02206856_55-1.txt")
     vis_s5_data(sketch_data, coor_mode="REL")
+    """
+    ret_file = r"E:\Code\ContrastiveSketchRetrieval\vis_test\test.ret"
+    image_dir = r"E:\Code\ContrastiveSketchRetrieval\vis_test\images"
+    sketch_dir = r"E:\Code\ContrastiveSketchRetrieval\vis_test\sketches"
+    vis_ret("sketch1.svg", ret_file, image_dir, sketch_dir, top_k=10)
 
 

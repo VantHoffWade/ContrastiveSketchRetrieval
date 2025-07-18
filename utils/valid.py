@@ -13,7 +13,7 @@ def valid_cls(args, model, sk_valid_data, im_valid_data):
     model.eval()
     torch.set_grad_enabled(False)
 
-    print('loading image data')
+    print('loading images data')
     sk_dataload = DataLoader(sk_valid_data, batch_size=args.test_sk, num_workers=args.num_workers, drop_last=False)
     print('loading sketch data')
     im_dataload = DataLoader(im_valid_data, batch_size=args.test_im, num_workers=args.num_workers, drop_last=False)

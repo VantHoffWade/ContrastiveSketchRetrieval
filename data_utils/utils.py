@@ -12,7 +12,7 @@ from data_utils.sketch_file_read import s5_read
 
 
 def get_all_train_file(args, skim):
-    if skim != 'sketch' or skim != 'image':
+    if skim != 'sketch' or skim != 'images':
         NameError(skim + ' not implemented!')
 
     if args.dataset == 'sketchy_extend':
@@ -24,7 +24,7 @@ def get_all_train_file(args, skim):
         cname_cid = args.data_path + f'/Sketchy/{shot_dir}/cname_cid.txt'
         if skim == 'sketch':
             file_ls_file = args.data_path + f'/Sketchy/{shot_dir}/sketch_tx_000000000000_ready_filelist_train.txt'
-        elif skim == 'image':
+        elif skim == 'images':
             file_ls_file = args.data_path + f'/Sketchy/{shot_dir}/all_photo_filelist_train.txt'
         else:
             NameError(skim + ' not implemented!')
@@ -33,7 +33,7 @@ def get_all_train_file(args, skim):
         cname_cid = args.data_path + '/TUBerlin/zeroshot/cname_cid.txt'
         if skim == 'sketch':
             file_ls_file = args.data_path + '/TUBerlin/zeroshot/png_ready_filelist_train.txt'
-        elif skim == 'image':
+        elif skim == 'images':
             file_ls_file = args.data_path + '/TUBerlin/zeroshot/ImageResized_ready_filelist_train.txt'
         else:
             NameError(skim + ' not implemented!')
@@ -42,7 +42,7 @@ def get_all_train_file(args, skim):
         cname_cid = args.data_path + '/QuickDraw/zeroshot/cname_cid.txt'
         if skim == 'sketch':
             file_ls_file = args.data_path + '/QuickDraw/zeroshot/sketch_train.txt'
-        elif skim == 'image':
+        elif skim == 'images':
             file_ls_file = args.data_path + '/QuickDraw/zeroshot/all_photo_train.txt'
         else:
             NameError(skim + ' not implemented!')
@@ -134,7 +134,7 @@ def get_file_list_iccv(args, rootpath, skim, split):
     file_names = np.array([(rootpath + x) for x in file_ls])
 
     # 对验证的样本数量进行缩减
-    # sketch 15229->762 image 17101->1711
+    # sketch 15229->762 images 17101->1711
     if args.dataset == 'sketchy_extend' and split == 'test' and skim == 'sketch':
         if args.testall:
             index = [i for i in range(0, file_names.shape[0], 1)]  # 15229
@@ -151,7 +151,7 @@ def get_file_list_iccv(args, rootpath, skim, split):
         file_names = file_names[index[:]]
         labels = labels[index[:]]
 
-    # sketch 2400->800, image 27989->1400
+    # sketch 2400->800, images 27989->1400
     if args.dataset == "tu_berlin" and skim == "sketch" and split == "test":
         if args.testall:
             index = [i for i in range(0, file_names.shape[0], 1)]  # 2400
@@ -168,7 +168,7 @@ def get_file_list_iccv(args, rootpath, skim, split):
         file_names = file_names[index[:]]
         labels = labels[index[:]]
 
-    # Quickdraw 92291->770, image 54151->1806
+    # Quickdraw 92291->770, images 54151->1806
     if args.dataset == "Quickdraw" and skim == "sketch" and split == "test":
         if args.testall:
             index = [i for i in range(0, file_names.shape[0], 1)]  # 92291
@@ -378,6 +378,77 @@ def remove_non_existing_filename(file_path, refer_root):
         f.writelines(newlines)
 
 
+def load_ret_file(file_path):
+    """
+    用来读取.ret类型的文件:
+    sketches:
+        sketch_filename1;
+        sketch_filename2;
+        ...
+        sketch_filenameN;
+    images:
+        image_filename1;
+        image_filename2;
+        ...
+        image_filenameM;
+    dist:
+        dist[1, 1], dist[1, 2], ..., dist[1, M];
+        .......................................;
+        dist[N, 1], dist[N, 2], ..., dist[N, M];
+
+    :param file_path:
+    :return: image_list, sketch_list,
+    """
+    sketches, images, dist = [], [], []
+
+    section = None
+    with open(file_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith('images:'):
+                section = 'images'
+                continue
+            elif line.startswith('sketches:'):
+                section = 'sketches'
+                continue
+            elif line.startswith('dist:'):
+                section = 'dist'
+                continue
+
+            if section == 'images':
+                if line.endswith(';'):
+                    images.append(line[:-1])
+            elif section == 'sketches':
+                if line.endswith(';'):
+                    sketches.append(line[:-1])
+            elif section == 'dist':
+                if line.endswith(';'):
+                    row = line[:-1].split(',')  # 去除结尾分号，按逗号分隔
+                    dist.append([float(x.strip()) for x in row])
+
+    return np.array(sketches), np.array(images), np.array(dist)
+
+def write_ret_file(ret_file, sketches, images, dist):
+    with open(ret_file, 'w', encoding='utf-8') as f:
+        f.write("sketches:\n")
+        # 草图信息写入
+        for sketch in sketches:
+            f.write('\t' + sketch + '\n')
+        f.write("images:\n")
+        # 图片信息写入
+        for image in images:
+            f.write('\t' + image + '\n')
+
+        f.write("dist:\n")
+        # 距离矩阵信息写入
+        for row in dist:
+            f.write('\t' + ','.join([str(x) for x in row]) + '\n')
+
+
+
+
 if __name__ == '__main__':
     """
     refactor_sketchy_svg_batched(r'E:\Code\ContrastiveSketchRetrieval\data_utils\logs\sketch_conversion_errors.log')
@@ -392,22 +463,26 @@ if __name__ == '__main__':
     change_index_png_to_txt(
         r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\zeroshot1\sketch_tx_000000000000_ready_filelist_zero.txt")
     """
-    remove_non_existing_filename(
-        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\zeroshot0"
-        r"\sketch_tx_000000000000_ready_filelist_zero.txt",
-        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\256x256\sketch\tx_000000000000_ready")
+    """ remove_non_existing_filename(
+                r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\zeroshot0"
+                r"\sketch_tx_000000000000_ready_filelist_zero.txt",
+                r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\256x256\sketch\tx_000000000000_ready")
 
-    remove_non_existing_filename(
-        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\zeroshot0"
-        r"\sketch_tx_000000000000_ready_filelist_train.txt",
-        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\256x256\sketch\tx_000000000000_ready")
+            remove_non_existing_filename(
+                r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\zeroshot0"
+                r"\sketch_tx_000000000000_ready_filelist_train.txt",
+                r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\256x256\sketch\tx_000000000000_ready")
 
-    remove_non_existing_filename(
-        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\zeroshot1"
-        r"\sketch_tx_000000000000_ready_filelist_zero.txt",
-        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\256x256\sketch\tx_000000000000_ready")
+            remove_non_existing_filename(
+                r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\zeroshot1"
+                r"\sketch_tx_000000000000_ready_filelist_zero.txt",
+                r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\256x256\sketch\tx_000000000000_ready")
 
-    remove_non_existing_filename(
-        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\zeroshot1"
-        r"\sketch_tx_000000000000_ready_filelist_train.txt",
-        r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\256x256\sketch\tx_000000000000_ready")
+            remove_non_existing_filename(
+                r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\zeroshot1"
+                r"\sketch_tx_000000000000_ready_filelist_train.txt",
+                r"E:\Dataset\sketches\ZSE-SBIR\Sketchy_s5\Sketchy\256x256\sketch\tx_000000000000_ready")"""
+
+    sketches, images, dists = load_ret_file("../vis_test/test.ret")
+
+    write_ret_file("../vis_test/test1.ret", sketches, images, dists)

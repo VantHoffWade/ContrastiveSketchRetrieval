@@ -48,7 +48,7 @@ class Relation_Network(nn.Module):
 
     def forward(self, x):
         """
-        :param x: sketch、image concat-->b*
+        :param x: sketch、images concat-->b*
         :return:
         """
         x = self.rn(x)

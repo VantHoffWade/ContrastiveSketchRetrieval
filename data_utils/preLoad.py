@@ -85,11 +85,11 @@ class PreLoad:
         self.all_train_sketch, self.all_train_sketch_label, self.all_train_sketch_cls_name =\
             get_all_train_file(args, "sketch")
         self.all_train_image, self.all_train_image_label, self.all_train_image_cls_name = \
-            get_all_train_file(args, "image")
+            get_all_train_file(args, "images")
         
         logger = args.logger
 
-        logger.info("used for valid or test sketch / image:")
+        logger.info("used for valid or test sketch / images:")
         logger.info(f"{self.all_valid_or_test_sketch.shape, self.all_valid_or_test_image.shape}")
-        logger.info("used for train sketch / image:")
+        logger.info("used for train sketch / images:")
         logger.info(f"{self.all_train_sketch.shape, self.all_train_image.shape}")

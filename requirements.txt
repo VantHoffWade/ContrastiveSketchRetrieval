@@ -63,3 +63,8 @@ webencodings==0.5.1
 xxhash==3.5.0
 yarl==1.15.2
 zipp==3.20.2
+
+torch~=1.10.0+cu113
+clip~=1.0
+pyqt5~=5.15.11
+torchvision~=0.11.1+cu113
